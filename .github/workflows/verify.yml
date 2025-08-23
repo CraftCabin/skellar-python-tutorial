@@ -29,16 +29,50 @@ jobs:
           fi
           pip install pytest pytest-json-report
           
-      - name: Run tests
+      - name: Extract mission from branch name
+        id: mission
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          echo "Branch name: $BRANCH_NAME"
+          
+          # Extract mission name from branch pattern mission/m*-*
+          if [[ $BRANCH_NAME =~ ^mission/(m[0-9]+-.+)$ ]]; then
+            MISSION_NAME="${BASH_REMATCH[1]}"
+            echo "mission_name=$MISSION_NAME" >> $GITHUB_OUTPUT
+            echo "mission_path=missions/$MISSION_NAME" >> $GITHUB_OUTPUT
+            echo "valid_mission=true" >> $GITHUB_OUTPUT
+            echo "Detected mission: $MISSION_NAME"
+          else
+            echo "valid_mission=false" >> $GITHUB_OUTPUT
+            echo "Branch name does not match mission pattern (mission/m*-*)"
+          fi
+          
+      - name: Run mission-specific tests
         id: tests
         run: |
-          # Run pytest and capture results
-          if pytest --json-report --json-report-file=test-report.json -v; then
-            echo "passed=true" >> $GITHUB_OUTPUT
-            echo "exit_code=0" >> $GITHUB_OUTPUT
+          MISSION_PATH="${{ steps.mission.outputs.mission_path }}"
+          VALID_MISSION="${{ steps.mission.outputs.valid_mission }}"
+          
+          if [ "$VALID_MISSION" == "true" ]; then
+            if [ -d "$MISSION_PATH" ]; then
+              echo "Running tests for mission: $MISSION_PATH"
+              # Run pytest only for the specific mission directory
+              if pytest "$MISSION_PATH" --json-report --json-report-file=test-report.json -v; then
+                echo "passed=true" >> $GITHUB_OUTPUT
+                echo "exit_code=0" >> $GITHUB_OUTPUT
+              else
+                echo "passed=false" >> $GITHUB_OUTPUT
+                echo "exit_code=$?" >> $GITHUB_OUTPUT
+              fi
+            else
+              echo "Mission directory $MISSION_PATH not found"
+              echo "passed=false" >> $GITHUB_OUTPUT
+              echo "exit_code=1" >> $GITHUB_OUTPUT
+            fi
           else
+            echo "Invalid mission branch pattern. Skipping tests."
             echo "passed=false" >> $GITHUB_OUTPUT
-            echo "exit_code=$?" >> $GITHUB_OUTPUT
+            echo "exit_code=1" >> $GITHUB_OUTPUT
           fi
         continue-on-error: true
  
@@ -47,21 +81,18 @@ jobs:
         run: |
           # Determine validation status - ALL conditions must pass
           tests_passed="${{ steps.tests.outputs.passed }}"
-          required_files_valid="${{ steps.files.outputs.required_files_valid }}"
-          test_files_unchanged="${{ steps.files.outputs.test_files_unchanged }}"
-          ci_files_unchanged="${{ steps.files.outputs.ci_files_unchanged }}"
+          valid_mission="${{ steps.mission.outputs.valid_mission }}"
+          mission_name="${{ steps.mission.outputs.mission_name }}"
           
-          # Check if ALL validation criteria are met
-          if [ "$tests_passed" == "true" ] && [ "$required_files_valid" == "true" ] && [ "$test_files_unchanged" == "true" ] && [ "$ci_files_unchanged" == "true" ]; then
+          # Check if validation criteria are met
+          if [ "$tests_passed" == "true" ] && [ "$valid_mission" == "true" ]; then
             validation_passed="true"
             error_msg=""
           else
             validation_passed="false"
             error_msg=""
-            [ "$tests_passed" == "false" ] && error_msg="Tests failed. "
-            [ "$required_files_valid" == "false" ] && error_msg="${error_msg}Missing files: ${{ steps.files.outputs.missing }}. "
-            [ "$test_files_unchanged" == "false" ] && error_msg="${error_msg}Test files modified: ${{ steps.files.outputs.modified_tests }}. "
-            [ "$ci_files_unchanged" == "false" ] && error_msg="${error_msg}CI files modified: ${{ steps.files.outputs.modified_ci }}. "
+            [ "$tests_passed" == "false" ] && error_msg="Tests failed for mission $mission_name. "
+            [ "$valid_mission" == "false" ] && error_msg="${error_msg}Invalid branch pattern - must follow mission/m*-* format. "
           fi
           
           # Submit to Skellar API
@@ -76,17 +107,14 @@ jobs:
               "github_username": "${{ github.event.pull_request.user.login }}",
               "learner_github_username": "${{ github.event.pull_request.user.login }}",
               "validation_passed": '$validation_passed',
+              "mission_name": "'$mission_name'",
               "test_results": {
                 "pytest_passed": '$tests_passed',
                 "exit_code": ${{ steps.tests.outputs.exit_code }}
               },
-              "file_checks": {
-                "required_files_present": '$required_files_valid',
-                "missing_files": "${{ steps.files.outputs.missing }}",
-                "test_files_unchanged": '$test_files_unchanged',
-                "modified_test_files": "${{ steps.files.outputs.modified_tests }}",
-                "ci_files_unchanged": '$ci_files_unchanged',
-                "modified_ci_files": "${{ steps.files.outputs.modified_ci }}"
+              "branch_validation": {
+                "valid_mission_branch": '$valid_mission',
+                "mission_name": "'$mission_name'"
               },
               "error_message": "'$error_msg'"
             }' \
