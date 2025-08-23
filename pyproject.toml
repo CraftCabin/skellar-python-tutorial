@@ -1,0 +1,134 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python-tutorial-missions"
+version = "1.0.0"
+description = "A collection of Python programming missions for learning fundamental concepts"
+readme = "README.md"
+authors = [
+    {name = "CraftCabin", email = "hello@craftcabin.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Education",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pytest>=6.2.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.2.4",
+    "pytest-cov>=2.12.0",
+    "black>=21.7b0",
+    "flake8>=3.9.0",
+    "mypy>=0.910",
+]
+web = [
+    "Flask>=2.0.1",
+    "requests>=2.25.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/CraftCabin/skellar-python-tutorial"
+Repository = "https://github.com/CraftCabin/skellar-python-tutorial.git"
+Documentation = "https://github.com/CraftCabin/skellar-python-tutorial/blob/main/README.md"
+"Bug Tracker" = "https://github.com/CraftCabin/skellar-python-tutorial/issues"
+
+[tool.setuptools.packages.find]
+where = ["missions"]
+
+[tool.setuptools.package-dir]
+"" = "missions"
+
+
+# Pytest configuration for Django
+[tool.pytest.ini_options]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+python_classes = ["Test*", "*Tests"]
+python_functions = ["test_*"]
+testpaths = ["missions"]
+addopts = [
+    "-v",
+]
+
+# Coverage configuration (if using pytest-cov)
+[tool.coverage.run]
+source = ["missions"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/.*"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod"
+]
+
+# Black code formatter configuration
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312', 'py313']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# MyPy type checking configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+# Ignore missing imports for packages that don't have type stubs
+[[tool.mypy.overrides]]
+module = [
+    "flask.*",
+    "requests.*"
+]
+ignore_missing_imports = true

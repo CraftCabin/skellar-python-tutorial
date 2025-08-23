@@ -1,0 +1,93 @@
+name: Python Mission Validator
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+env:
+  SKELLAR_API_URL: "http://127.0.0.1:8000/api/v1/coding/validate-pr/"
+
+jobs:
+  validate-python-mission:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+          
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          pip install pytest pytest-json-report
+          
+      - name: Run tests
+        id: tests
+        run: |
+          # Run pytest and capture results
+          if pytest --json-report --json-report-file=test-report.json -v; then
+            echo "passed=true" >> $GITHUB_OUTPUT
+            echo "exit_code=0" >> $GITHUB_OUTPUT
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+            echo "exit_code=$?" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+ 
+      - name: Submit to Skellar
+        id: submit
+        run: |
+          # Determine validation status - ALL conditions must pass
+          tests_passed="${{ steps.tests.outputs.passed }}"
+          required_files_valid="${{ steps.files.outputs.required_files_valid }}"
+          test_files_unchanged="${{ steps.files.outputs.test_files_unchanged }}"
+          ci_files_unchanged="${{ steps.files.outputs.ci_files_unchanged }}"
+          
+          # Check if ALL validation criteria are met
+          if [ "$tests_passed" == "true" ] && [ "$required_files_valid" == "true" ] && [ "$test_files_unchanged" == "true" ] && [ "$ci_files_unchanged" == "true" ]; then
+            validation_passed="true"
+            error_msg=""
+          else
+            validation_passed="false"
+            error_msg=""
+            [ "$tests_passed" == "false" ] && error_msg="Tests failed. "
+            [ "$required_files_valid" == "false" ] && error_msg="${error_msg}Missing files: ${{ steps.files.outputs.missing }}. "
+            [ "$test_files_unchanged" == "false" ] && error_msg="${error_msg}Test files modified: ${{ steps.files.outputs.modified_tests }}. "
+            [ "$ci_files_unchanged" == "false" ] && error_msg="${error_msg}CI files modified: ${{ steps.files.outputs.modified_ci }}. "
+          fi
+          
+          # Submit to Skellar API
+          curl -X POST "${{ env.SKELLAR_API_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.SKELLAR_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repository_owner": "${{ github.repository_owner }}",
+              "repository_name": "${{ github.event.repository.name }}",
+              "pull_request_number": ${{ github.event.pull_request.number }},
+              "commit_sha": "${{ github.event.pull_request.head.sha }}",
+              "github_username": "${{ github.event.pull_request.user.login }}",
+              "learner_github_username": "${{ github.event.pull_request.user.login }}",
+              "validation_passed": '$validation_passed',
+              "test_results": {
+                "pytest_passed": '$tests_passed',
+                "exit_code": ${{ steps.tests.outputs.exit_code }}
+              },
+              "file_checks": {
+                "required_files_present": '$required_files_valid',
+                "missing_files": "${{ steps.files.outputs.missing }}",
+                "test_files_unchanged": '$test_files_unchanged',
+                "modified_test_files": "${{ steps.files.outputs.modified_tests }}",
+                "ci_files_unchanged": '$ci_files_unchanged',
+                "modified_ci_files": "${{ steps.files.outputs.modified_ci }}"
+              },
+              "error_message": "'$error_msg'"
+            }' \
+            --fail --show-error || echo "API call failed"
