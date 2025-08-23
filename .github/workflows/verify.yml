@@ -93,7 +93,7 @@ jobs:
           fi
           
           # Submit to Skellar API
-          curl -X POST "${{ env.SKELLAR_API_HOST }}/api/v1/coding/validate-pr/" \
+          curl -X POST "${{ vars.SKELLAR_API_HOST }}/api/v1/coding/validate-pr/" \
             -H "Authorization: Bearer ${{ secrets.SKELLAR_API_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{
