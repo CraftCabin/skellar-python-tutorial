@@ -2,7 +2,7 @@ import pytest
 import sys
 import os
 sys.path.append(os.path.dirname(__file__))
-from .main import create_variables, calculate_info
+from .main import create_variables, calculate_info 
 
 
 def test_create_variables():
