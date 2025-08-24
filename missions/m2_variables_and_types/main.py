@@ -1,16 +1,31 @@
-def mission() -> None:
+def add_numbers(a: int, b: int) -> int:
     """
-    Mission 2: Variables and Types
-    Goal: Create variables of different types and display information about a person
+    Add two numbers and return the result.
+    
+    Args:
+        a (int): First number
+        b (int): Second number
+        
+    Returns:
+        int: Sum of the two numbers
+    Example:
+    >>> add_numbers(5, 10)
+    15
     """
-    pass
 
+    
 
-def create_variables():
-    """Create and return a dictionary with variables of different types."""
-    pass
-
-
-def calculate_info(name, birth_year):
-    """Calculate and return formatted string with name and age."""
-    pass
+def concat_numbers_as_string(a: int, b: int) -> str:
+    """
+    Concatenate two numbers as strings and return the result.
+    
+    Args:
+        a (int): First number
+        b (int): Second number
+        
+    Returns:
+        str: Concatenated string of the two numbers
+    Example:
+    >>> concat_numbers_as_string(5, 10)
+    '510'
+    """

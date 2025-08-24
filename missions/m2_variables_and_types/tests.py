@@ -2,44 +2,68 @@ import pytest
 import sys
 import os
 sys.path.append(os.path.dirname(__file__))
-from .main import create_variables, calculate_info 
+from .main import add_numbers, concat_numbers_as_string
 
 
-def test_create_variables():
-    """Test that create_variables returns the correct types and structure."""
-    result = create_variables()
+def test_add_numbers():
+    """Test that add_numbers correctly adds two integers."""
+    # Test basic addition
+    result = add_numbers(5, 10)
+    assert result == 15
+    assert isinstance(result, int)
     
-    assert isinstance(result, dict)
-    assert 'name' in result
-    assert 'age' in result
-    assert 'height' in result
-    assert 'is_student' in result
+    # Test with different numbers
+    result = add_numbers(3, 7)
+    assert result == 10
+    assert isinstance(result, int)
     
-    assert isinstance(result['name'], str)
-    assert isinstance(result['age'], int)
-    assert isinstance(result['height'], float)
-    assert isinstance(result['is_student'], bool)
-
-
-def test_calculate_info():
-    """Test that calculate_info returns correct formatted string."""
-    result = calculate_info("John", 2000)
-    expected = "Hello John, you are 25 years old!"
-    assert result == expected
-
-
-def test_calculate_info_different_year():
-    """Test calculate_info with a different birth year."""
-    result = calculate_info("Jane", 1990)
-    expected = "Hello Jane, you are 35 years old!"
-    assert result == expected
-
-
-def test_variable_types():
-    """Test that variables have the expected types."""
-    variables = create_variables()
+    # Test with zero
+    result = add_numbers(0, 5)
+    assert result == 5
+    assert isinstance(result, int)
     
-    # Test specific type requirements
-    assert len(variables['name']) > 0  # Name should not be empty
-    assert variables['age'] >= 0  # Age should be non-negative
-    assert variables['height'] > 0  # Height should be positive
+    # Test with negative numbers
+    result = add_numbers(-5, 10)
+    assert result == 5
+    assert isinstance(result, int)
+
+
+def test_add_numbers_negative():
+    """Test add_numbers with negative numbers."""
+    result = add_numbers(-3, -7)
+    assert result == -10
+    assert isinstance(result, int)
+
+
+def test_concat_numbers_as_string():
+    """Test that concat_numbers_as_string correctly concatenates numbers as strings."""
+    # Test basic concatenation
+    result = concat_numbers_as_string(5, 10)
+    assert result == "510"
+    assert isinstance(result, str)
+    
+    # Test with different numbers
+    result = concat_numbers_as_string(1, 2)
+    assert result == "12"
+    assert isinstance(result, str)
+    
+    # Test with zero
+    result = concat_numbers_as_string(0, 5)
+    assert result == "05"
+    assert isinstance(result, str)
+    
+    # Test with larger numbers
+    result = concat_numbers_as_string(123, 456)
+    assert result == "123456"
+    assert isinstance(result, str)
+
+
+def test_concat_numbers_with_negative():
+    """Test concat_numbers_as_string with negative numbers."""
+    result = concat_numbers_as_string(-5, 10)
+    assert result == "-510"
+    assert isinstance(result, str)
+    
+    result = concat_numbers_as_string(5, -10)
+    assert result == "5-10"
+    assert isinstance(result, str)

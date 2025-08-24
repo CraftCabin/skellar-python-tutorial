@@ -1,65 +1,73 @@
 # Mission 2: Variables and Types
 
 ## Learning Objectives
-- Understand Python's basic data types (str, int, float, bool)
-- Learn variable assignment and naming conventions
-- Practice working with dictionaries
-- Understand string formatting and calculations
+- Understand Python's basic data types (str, int)
+- Learn function parameters and return types
+- Practice arithmetic operations and type conversion
+- Understand the difference between mathematical operations and string operations
 
 ## Concepts Covered
-- Variable assignment
-- Data types: string, integer, float, boolean
-- Dictionary creation and manipulation
-- String formatting with f-strings
-- Basic arithmetic operations
-- Function parameters and return values
+- Function definition with type hints
+- Integer arithmetic (addition)
+- Type conversion (int to str)
+- String concatenation
+- Return statements with specific types
 
 ## Mission Description
-In this mission, you'll work with Python's fundamental data types and learn how to store and manipulate different kinds of information. You'll create variables, perform calculations, and organize data using dictionaries.
+In this mission, you'll implement two fundamental functions that demonstrate the difference between mathematical operations and string operations on numbers. You'll learn how the same numbers can be treated as mathematical values or as text depending on what you want to accomplish.
 
 ## What You'll Build
 Two main functions:
-1. `create_variables()` - Creates and returns variables of different types
-2. `calculate_info()` - Performs calculations and formats strings
+1. `add_numbers(a: int, b: int) -> int` - Performs mathematical addition
+2. `concat_numbers_as_string(a: int, b: int) -> str` - Concatenates numbers as text
 
 ## Key Code Concepts
 
-### Variable Types
+### Function with Type Hints
 ```python
-name = "Alice"           # String (str)
-age = 25                 # Integer (int)
-height = 1.75            # Float (float)
-is_student = True        # Boolean (bool)
+def add_numbers(a: int, b: int) -> int:
+    """Add two numbers mathematically."""
+    return a + b
 ```
 
-### Dictionary Creation
+### Type Conversion and String Concatenation
 ```python
-return {
-    'name': name,
-    'age': age,
-    'height': height,
-    'is_student': is_student
-}
+def concat_numbers_as_string(a: int, b: int) -> str:
+    """Convert numbers to strings and concatenate them."""
+    return str(a) + str(b)
 ```
 
-### String Formatting
+### The Difference Between + Operations
 ```python
-current_year = 2025
-age = current_year - birth_year
-return f"Hello {name}, you are {age} years old!"
+# Mathematical addition
+5 + 10 = 15
+
+# String concatenation
+"5" + "10" = "510"
 ```
 
 ## Tasks to Complete
-1. ✅ Create variables of different types (string, int, float, bool)
-2. ✅ Return them organized in a dictionary
-3. ✅ Calculate a person's age from birth year
-4. ✅ Format a greeting message with calculated values
-5. ✅ Use proper variable naming conventions
+1. ✅ Implement `add_numbers()` to perform mathematical addition
+2. ✅ Implement `concat_numbers_as_string()` to concatenate numbers as strings
+3. ✅ Use proper type hints for parameters and return values
+4. ✅ Handle both positive and negative numbers correctly
+5. ✅ Ensure return types match the function signatures
 
-## Variable Naming Best Practices
-- Use lowercase with underscores: `birth_year`
-- Be descriptive: `is_student` not `flag`
-- Avoid Python keywords: `class`, `def`, `return`, etc.
+## Examples
+
+### Mathematical Addition
+```python
+add_numbers(5, 10)    # Returns: 15
+add_numbers(-3, 7)    # Returns: 4
+add_numbers(0, 5)     # Returns: 5
+```
+
+### String Concatenation
+```python
+concat_numbers_as_string(5, 10)    # Returns: "510"
+concat_numbers_as_string(-3, 7)    # Returns: "-37" 
+concat_numbers_as_string(0, 5)     # Returns: "05"
+```
 
 ## Running Your Code
 ```bash
@@ -70,26 +78,38 @@ python main.py
 pytest tests.py -v
 ```
 
-## Expected Output
-When you run `main.py`, you should see something like:
-```
-Variables created: {'name': 'Alice', 'age': 25, 'height': 1.75, 'is_student': True}
-Hello Bob, you are 30 years old!
-```
+## Expected Behavior
+- `add_numbers(5, 10)` should return the integer `15`
+- `concat_numbers_as_string(5, 10)` should return the string `"510"`
+- Both functions should handle negative numbers correctly
+- Return types must match the function signatures exactly
 
 ## Test Requirements
 Your code must pass these tests:
-- `create_variables()` returns a dictionary with correct keys
-- Each variable has the correct data type
-- `calculate_info()` correctly calculates age
-- String formatting works properly
-- Variables contain valid values (non-negative age, positive height, etc.)
+- `add_numbers()` returns correct mathematical sum as integer
+- `concat_numbers_as_string()` returns correct concatenated string
+- Functions handle positive, negative, and zero values
+- Return types are exactly as specified (int vs str)
+- Functions work with various number combinations
 
 ## Common Mistakes to Avoid
-- ❌ Using quotes around numbers: `age = "25"` (this makes it a string!)
-- ❌ Forgetting to return the dictionary
-- ❌ Incorrect key names in the dictionary
-- ❌ Wrong calculation in age formula
+- ❌ Returning a string from `add_numbers()`: should return int, not str
+- ❌ Returning an int from `concat_numbers_as_string()`: should return str, not int
+- ❌ Forgetting to convert integers to strings before concatenation
+- ❌ Not handling negative numbers properly in string concatenation
+
+## Type Conversion Reminder
+```python
+# Convert int to str
+num = 42
+text = str(num)  # "42"
+
+# This is concatenation, not addition
+str(5) + str(10)  # "510"
+
+# This is addition, not concatenation  
+5 + 10  # 15
+```
 
 ## Next Steps
-Once you master variables and types, Mission 3 will introduce you to lists and loops for handling multiple pieces of data!
+Once you master basic types and operations, Mission 3 will introduce you to lists and loops for handling collections of data!
