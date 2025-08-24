@@ -92,27 +92,42 @@ jobs:
             [ "$valid_mission" == "false" ] && error_msg="${error_msg}Invalid branch pattern - must follow mission/m*-* format. "
           fi
           
-          # Submit to Skellar API
+          # Submit to Skellar API using jq to build JSON payload atomically
+          payload=$(jq -n \
+            --arg repo_owner "${{ github.repository_owner }}" \
+            --arg repo_name "${{ github.event.repository.name }}" \
+            --argjson pr_number "${{ github.event.pull_request.number }}" \
+            --arg commit_sha "${{ github.event.pull_request.head.sha }}" \
+            --arg github_user "${{ github.event.pull_request.user.login }}" \
+            --arg learner_user "${{ github.event.pull_request.user.login }}" \
+            --argjson validation_passed "$validation_passed" \
+            --arg mission_name "$mission_name" \
+            --argjson tests_passed "$tests_passed" \
+            --argjson exit_code "${{ steps.tests.outputs.exit_code }}" \
+            --argjson valid_mission "$valid_mission" \
+            --arg error_msg "$error_msg" \
+            '{
+              repository_owner: $repo_owner,
+              repository_name: $repo_name,
+              pull_request_number: $pr_number,
+              commit_sha: $commit_sha,
+              github_username: $github_user,
+              learner_github_username: $learner_user,
+              validation_passed: $validation_passed,
+              mission_name: $mission_name,
+              test_results: {
+                pytest_passed: $tests_passed,
+                exit_code: $exit_code
+              },
+              branch_validation: {
+                valid_mission_branch: $valid_mission,
+                mission_name: $mission_name
+              },
+              error_message: $error_msg
+            }')
+          
           curl -X POST "${{ vars.SKELLAR_API_HOST }}/api/v1/coding/validate-pr/" \
             -H "Authorization: Bearer ${{ secrets.SKELLAR_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "repository_owner": "${{ github.repository_owner }}",
-              "repository_name": "${{ github.event.repository.name }}",
-              "pull_request_number": ${{ github.event.pull_request.number }},
-              "commit_sha": "${{ github.event.pull_request.head.sha }}",
-              "github_username": "${{ github.event.pull_request.user.login }}",
-              "learner_github_username": "${{ github.event.pull_request.user.login }}",
-              "validation_passed": '$validation_passed',
-              "mission_name": "'$mission_name'",
-              "test_results": {
-                "pytest_passed": '$tests_passed',
-                "exit_code": ${{ steps.tests.outputs.exit_code }}
-              },
-              "branch_validation": {
-                "valid_mission_branch": '$valid_mission',
-                "mission_name": "'$mission_name'"
-              },
-              "error_message": "'$error_msg'"
-            }' \
+            -d "$payload" \
             --fail --show-error || echo "API call failed"
