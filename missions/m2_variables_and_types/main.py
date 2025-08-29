@@ -12,6 +12,7 @@ def add_numbers(a: int, b: int) -> int:
     >>> add_numbers(5, 10)
     15
     """
+    return a + b
 
     
 
@@ -29,3 +30,4 @@ def concat_numbers_as_string(a: int, b: int) -> str:
     >>> concat_numbers_as_string(5, 10)
     '510'
     """
+    return str(a) + str(b)
